@@ -44,6 +44,7 @@ app = App(
 @app.event("app_home_opened")
 def update_home_tab(client, event, logger):
     
+    # TODO load from persistent storage
     with open("ilist.dat","rb") as i:
         item_list = pickle.load(i)
     with open("clist.dat","rb") as c:
@@ -61,53 +62,51 @@ def update_home_tab(client, event, logger):
         logger.error(f"Error publishing home tab: {e}")
 
 @app.action("check_item")
-def handle_some_action(ack, action, client):
+def handle_checked_item(ack, action, client):
     ack()
     
+    # TODO save to persistent storage
     with open("ilist.dat","rb") as i:
         item_list = pickle.load(i)
     with open("clist.dat","rb") as c:
         checked_item_list = pickle.load(c)
     
-    # if checked_item_list - action["selected_options"] != []: # 새로 추가된게 더 많은 경우 = 새로 추가된걸 텍스트 바꾸고 checked_item_list에 추가
-    #     delta = action["selected_options"] - checked_item_list
-    # elif action["selected_options"] - checked_item_list != []: # 기존에 있던게 더 많다 = 뭔가가 빠졌다
-    #     delta = checked_item_list - action["selected_options"]
-    
+    selected_options = action["selected_options"].copy()
 
-    
-    checked_item_list = action["selected_options"].copy()
-    
-    
-    # for i in checked_item_list:
-    #     print(i["text"]["text"][1:-1])
-    #     if i["text"]["text"].startswith('~') and i["text"]["text"].endswith('~'):
-    #         newstring = i["text"]["text"][1:-1]
-    #         item_list[item_list.index(i)]["text"]["text"] = newstring
-    #         i["text"]["text"] = newstring
-    #     else:
-    #         newstring = "~%s~" % i["text"]["text"]
-    #         item_list[item_list.index(i)]["text"]["text"] = newstring
-    #         i["text"]["text"] = newstring
-    
-    
-    
+    if len(selected_options) > len(checked_item_list):
+        for i in selected_options:
+            if i in checked_item_list:
+                continue
             
-                
+            if not i["text"]["text"].startswith('~') and not i["text"]["text"].endswith('~'):
+                newstring = "~%s~" % i["text"]["text"]
+                item_list[item_list.index(i)]["text"]["text"] = newstring
+                i["text"]["text"] = newstring
+            
+                checked_item_list.append(i)
+               
+    else:
+        for i in checked_item_list:
+            if i in selected_options:
+                continue
+            
+            if i["text"]["text"].startswith('~') and i["text"]["text"].endswith('~'):
+                newstring = i["text"]["text"][1:-1]
+                item_list[item_list.index(i)]["text"]["text"] = newstring
+                i["text"]["text"] = newstring
+            
+                checked_item_list.remove(i)
     
+    # TODO load from persistent storage
     with open("ilist.dat","wb") as i:
         pickle.dump(item_list, i)
     with open("clist.dat","wb") as c:
         pickle.dump(checked_item_list, c)
     
-    # print(item_list)
-    # print(checked_item_list)
-    # print(action["selected_options"])
     client.views_update(
         external_id="home_view",
         view=functions.generate_view(item_list, checked_item_list)
     )
-                
 
 @app.action("plain_text_input-action")
 def approve_request(ack, say):
