@@ -1,7 +1,5 @@
 import os
 from slack_bolt import App
-import views
-import json
 import functions
 import pickle
 
@@ -10,7 +8,6 @@ app = App(
     signing_secret = os.environ.get("SLACK_SIGNING_SECRET"),
 )
 
-# TODO get list from slack message or db
 # item_list = [
 #     {
 #         "text": {
@@ -51,7 +48,6 @@ def update_home_tab(client, event, logger):
         checked_item_list = pickle.load(c)
     
     try:        
-        # TODO Build view dynamically
         home_view = functions.generate_view(item_list, checked_item_list)
         client.views_publish(
             user_id = event["user"],
@@ -108,11 +104,33 @@ def handle_checked_item(ack, action, client):
         view=functions.generate_view(item_list, checked_item_list)
     )
 
-@app.action("plain_text_input-action")
-def approve_request(ack, say):
-    # TODO Add item to list
+@app.action("add_new_item")
+def approve_request(ack, action, client):
     ack()
-    say(channel="U02940L9DEX", text="Request approved 👍")
+    
+    newitem = {
+        "text": {
+            "type": "mrkdwn",
+            "text": action["value"],
+            "verbatim": False
+        },
+        "value": action["value"]
+    }
+    
+    with open("ilist.dat","rb") as i:
+        item_list = pickle.load(i)
+    with open("clist.dat","rb") as c:
+        checked_item_list = pickle.load(c)
+        
+    item_list.append(newitem)
+        
+    with open("ilist.dat","wb") as i:
+        pickle.dump(item_list, i)
+    
+    client.views_update(
+        external_id="home_view",
+        view=functions.generate_view(item_list, checked_item_list)
+    )
 
 @app.action("actionId-0")
 def approve_request(ack, say, client):
