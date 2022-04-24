@@ -66,6 +66,9 @@ def handle_checked_item(ack, action, client):
         item_list = pickle.load(i)
     with open("clist.dat","rb") as c:
         checked_item_list = pickle.load(c)
+        
+    for j in checked_item_list:
+        j["text"]["text"] = functions.cross(j["text"]["text"])
     
     selected_options = action["selected_options"].copy()
 
@@ -74,24 +77,14 @@ def handle_checked_item(ack, action, client):
             if i in checked_item_list:
                 continue
             
-            if not i["text"]["text"].startswith('~') and not i["text"]["text"].endswith('~'):
-                newstring = "~%s~" % i["text"]["text"]
-                item_list[item_list.index(i)]["text"]["text"] = newstring
-                i["text"]["text"] = newstring
-            
-                checked_item_list.append(i)
+            checked_item_list.append(i)
                
     else:
         for i in checked_item_list:
             if i in selected_options:
                 continue
             
-            if i["text"]["text"].startswith('~') and i["text"]["text"].endswith('~'):
-                newstring = i["text"]["text"][1:-1]
-                item_list[item_list.index(i)]["text"]["text"] = newstring
-                i["text"]["text"] = newstring
-            
-                checked_item_list.remove(i)
+            checked_item_list.remove(i)
     
     # TODO load from persistent storage
     with open("ilist.dat","wb") as i:
@@ -131,34 +124,6 @@ def approve_request(ack, action, client):
         external_id="home_view",
         view=functions.generate_view(item_list, checked_item_list)
     )
-
-@app.action("submit_raw_edit")
-def approve_request(ack, client, body):
-    ack()
-    # say(channel="U02940L9DEX", text="Request approved 👍")
-
-    state_values = body["view"]["state"]["values"]
-    raw_input = ""
-    
-    for _, v in state_values.items():
-        if "raw_editor" not in v.keys():
-            continue
-        raw_input = v["raw_editor"]["value"]
-        break
-    
-    ilist, clist = functions.string_to_lists(raw_input)
-    
-    with open("ilist.dat","wb") as i:
-        pickle.dump(ilist, i)
-    with open("clist.dat","wb") as c:
-        pickle.dump(clist, c)
-
-    client.views_update(
-        external_id="home_view",
-        view=functions.generate_view(ilist, clist)
-    )
-    
-    # TODO make 'x' in raw edit cross the text out
 
 # Start app
 if __name__ == "__main__":

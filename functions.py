@@ -5,18 +5,11 @@ from datetime import datetime, date
 import functions
 
 def generate_view(list: List[str], clist: List[str]) -> object:
-    list_in_string = functions.list_to_string(list, clist)
-    if list_in_string != "":
-        views.raw_editor["element"]["initial_value"] = list_in_string
-        
     json_object = {
         "type": "home",
         "blocks": [generate_header()] 
             + [generate_list(list, clist)] 
-            + [views.add_new_item]
-            + [views.divider]
-            + [views.raw_editor]
-            + [views.submit_raw_edit],
+            + [views.add_new_item],
         "external_id": "home_view"
     }
     
@@ -35,8 +28,7 @@ def generate_header() -> object:
     return header
     
 def generate_list(list: List[str], clist: List[str]) -> object:
-
-    if clist:
+    if clist:        
         element = {
             "type": "checkboxes",
             "initial_options": clist,
@@ -51,12 +43,12 @@ def generate_list(list: List[str], clist: List[str]) -> object:
         }
         
         
-    list = {
+    list_object = {
         "type": "actions",
         "elements": [element]
     }
     
-    return list
+    return list_object
 
 def list_to_string(list: List[str], clist: List[str]) -> str:
     stringified = ""
@@ -94,3 +86,13 @@ def string_to_lists(s: str) -> tuple[List[str], List[str]]:
             citems.append(item)
             
     return items, citems
+
+def cross(s: str) -> str:
+    if not s.startswith("~") and not s.endswith("~"):
+        return "~%s~" % s
+    return s
+    
+def uncross(s: str) -> str:
+    if s.startswith("~") and s.endswith("~"):
+        return s[1:-1]
+    return s
