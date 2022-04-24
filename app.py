@@ -132,16 +132,33 @@ def approve_request(ack, action, client):
         view=functions.generate_view(item_list, checked_item_list)
     )
 
-@app.action("actionId-0")
-def approve_request(ack, say, client):
-    # TODO Update entire list
+@app.action("submit_raw_edit")
+def approve_request(ack, client, body):
     ack()
-    say(channel="U02940L9DEX", text="Request approved 👍")
+    # say(channel="U02940L9DEX", text="Request approved 👍")
+
+    state_values = body["view"]["state"]["values"]
+    raw_input = ""
+    
+    for _, v in state_values.items():
+        if "raw_editor" not in v.keys():
+            continue
+        raw_input = v["raw_editor"]["value"]
+        break
+    
+    ilist, clist = functions.string_to_lists(raw_input)
+    
+    with open("ilist.dat","wb") as i:
+        pickle.dump(ilist, i)
+    with open("clist.dat","wb") as c:
+        pickle.dump(clist, c)
 
     client.views_update(
         external_id="home_view",
-        view=functions.check_item(item_list)
+        view=functions.generate_view(ilist, clist)
     )
+    
+    # TODO make 'x' in raw edit cross the text out
 
 # Start app
 if __name__ == "__main__":

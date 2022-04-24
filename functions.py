@@ -63,10 +63,34 @@ def list_to_string(list: List[str], clist: List[str]) -> str:
     for i in list:
         if i in clist:
             stringified += "[x] "
-            stringified += i["text"]["text"][1:-1]
+            stringified += i["text"]["text"]
         else:
-            stringified += "[] "
+            stringified += "[ ] "
             stringified += i["text"]["text"]
         stringified += "\n"
         
     return stringified
+
+def string_to_lists(s: str) -> tuple[List[str], List[str]]:
+    items_string = s.splitlines()
+    items = []
+    citems = []
+    
+    for s in items_string:
+        if s == "":
+            continue
+        
+        item = {
+            "text": {
+                "type": "mrkdwn",
+                "text": s[4:],
+                "verbatim": False
+            },
+            "value": s[4:]
+        }
+        items.append(item)
+        
+        if s.startswith("[x]"):
+            citems.append(item)
+            
+    return items, citems

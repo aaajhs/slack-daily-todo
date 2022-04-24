@@ -19,7 +19,7 @@ raw_editor = {
     "element": {
         "type": "plain_text_input",
         "multiline": True,
-        "action_id": "plain_text_input-action"
+        "action_id": "raw_editor"
     },
     "label": {
         "type": "plain_text",
@@ -35,11 +35,12 @@ submit_raw_edit = {
             "type": "button",
             "text": {
                 "type": "plain_text",
-                "text": "Click Me",
+                "text": "Submit",
                 "emoji": True
             },
-            "value": "click_me_123",
-            "action_id": "actionId-0"
+            "style": "primary",
+            "value": "Submit",
+            "action_id": "submit_raw_edit"
         }
     ]
 }
