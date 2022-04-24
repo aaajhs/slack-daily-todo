@@ -4,11 +4,14 @@ import json
 from datetime import datetime, date
 
 def generate_view(list: List[str], clist: List[str]) -> object:
-    with open('data.json') as f:
-        json_object = json.load(f)
-        json_object["blocks"] = [generate_header()] + [generate_list(list, clist)] + views.fixed_section
-        
-        return json.dumps(json_object)
+    json_object = {
+        "type": "home",
+        "blocks": [generate_header()] + [generate_list(list, clist)] + views.fixed_section,
+        "external_id": "home_view"
+    }
+    # json_object["blocks"] = [generate_header()] + [generate_list(list, clist)] + views.fixed_section
+    
+    return json.dumps(json_object)
     
 def generate_header() -> object:
     header = {
