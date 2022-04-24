@@ -63,10 +63,10 @@ def list_to_string(list: List[str], clist: List[str]) -> str:
     for i in list:
         if i in clist:
             stringified += "[x] "
+            stringified += i["text"]["text"][1:-1]
         else:
             stringified += "[] "
-        
-        stringified += i["text"]["text"]
+            stringified += i["text"]["text"]
         stringified += "\n"
         
     return stringified
