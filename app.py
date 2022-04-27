@@ -2,6 +2,8 @@ import os
 from slack_bolt import App
 import functions
 import pickle
+import initialize
+from datetime import date, datetime
 
 app = App(
     token = os.environ.get("SLACK_BOT_TOKEN"),
@@ -39,16 +41,38 @@ app = App(
 
 # Handle interactions
 @app.event("app_home_opened")
-def update_home_tab(client, event, logger):
-    
+def update_home_tab(client, event, logger, say):
     # TODO load from persistent storage
-    with open("ilist.dat","rb") as i:
-        item_list = pickle.load(i)
-    with open("clist.dat","rb") as c:
-        checked_item_list = pickle.load(c)
     
     try:        
+        last_message = client.conversations_history(
+            channel = event["channel"],
+            limit = 1
+        )
+    
+        with open("ilist.dat","rb") as i:
+            item_list = pickle.load(i)
+        with open("clist.dat","rb") as c:
+            checked_item_list = pickle.load(c)
+        
         home_view = functions.generate_view(item_list, checked_item_list)
+        
+        timestamp = int(float(last_message["messages"][0]["ts"]))
+        if datetime.fromtimestamp(timestamp).date() != date.today():
+            # save status
+            message = initialize.save_past_list(item_list, checked_item_list)
+            say(message)
+            
+            # rebuild today's list
+            new_list = initialize.listify(message)
+            
+            with open("ilist.dat", "wb") as i:
+                pickle.dump(new_list, i)
+            with open("clist.dat", "wb") as c:
+                pickle.dump([], c)
+            
+            home_view = functions.generate_view(new_list, [])
+            
         client.views_publish(
             user_id = event["user"],
             view=home_view
